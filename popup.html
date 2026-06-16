@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dual Audio Recorder</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <img src="icon48.png" alt="Logo" class="app-logo">
+        <div>
+          <h1 class="app-title">Dual Audio Recorder</h1>
+          <span class="app-subtitle">Tab Audio + Microphone</span>
+        </div>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <span class="status-dot"></span>
+        <span class="status-text">Ready</span>
+      </div>
+    </header>
+
+    <!-- Error / Alert Info Box -->
+    <div class="alert-box hidden" id="alertBox">
+      <svg class="svg-icon alert-icon" viewBox="0 0 24 24" id="alertIcon"><polygon points="12 2 2 22 22 22 12 2"></polygon><line x1="12" y1="13" x2="12" y2="17"></line><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+      <span class="alert-message" id="alertMessage">Alert message here</span>
+      <button class="alert-close" id="alertClose">
+        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <!-- Active Tab Panel -->
+    <div class="panel tab-panel">
+      <div class="panel-header">
+        <div class="panel-title-with-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          <span>Target Browser Tab</span>
+        </div>
+      </div>
+      <div class="active-tab-info">
+        <img src="" alt="" class="tab-favicon hidden" id="tabFavicon">
+        <span class="tab-name" id="tabTitle">Loading active tab...</span>
+      </div>
+      <div class="tab-hint">Captures meeting tab audio via native Chrome media routing.</div>
+    </div>
+
+    <!-- Microphone Setup Panel -->
+    <div class="panel mic-panel" id="micSetupPanel">
+      <div class="panel-header">
+        <div class="panel-title-with-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+          <span>Microphone Input</span>
+        </div>
+        <button class="btn-link" id="setupMicsLink" title="Configure Microphone Permissions">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Device Setup</span>
+        </button>
+      </div>
+      <div class="mic-selection-area">
+        <select id="micSelect" class="mic-select">
+          <option value="default">Default Microphone</option>
+        </select>
+        <button id="refreshMicsBtn" class="btn btn-outline btn-icon-only" title="Refresh list">
+          <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pre-Recording State: Start Button -->
+    <div class="recording-actions-idle" id="idleActions">
+      <button id="startBtn" class="btn btn-primary btn-giant">
+        <svg class="svg-icon" viewBox="0 0 24 24" style="width: 22px; height: 22px; stroke-width: 2.5;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3" style="fill: currentColor;"></circle></svg>
+        <span class="btn-text">Start Simultaneous Recording</span>
+      </button>
+      <div class="hotkey-hint">Hotkey: <strong>Ctrl+Shift+K</strong> (Mac: <strong>Cmd+Shift+K</strong>)</div>
+    </div>
+
+    <!-- Active Recording State -->
+    <div class="recording-view hidden" id="recordingView">
+      <div class="timer-display">
+        <span id="elapsedTimer">00:00:00</span>
+      </div>
+
+      <!-- Live Dual VU Meters -->
+      <div class="vu-meters-container">
+        <div class="vu-meter">
+          <div class="vu-label">
+            <div class="vu-label-icon">
+              <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              <span>Tab / Meeting Audio</span>
+            </div>
+          </div>
+          <div class="meter-bar-container">
+            <div class="meter-bar tab-meter-bar" id="tabMeterBar"></div>
+          </div>
+        </div>
+
+        <div class="vu-meter">
+          <div class="vu-label">
+            <div class="vu-label-icon">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+              <span>Your Microphone</span>
+            </div>
+            <span class="badge-muted hidden" id="micMutedBadge">MUTED</span>
+          </div>
+          <div class="meter-bar-container">
+            <div class="meter-bar mic-meter-bar" id="micMeterBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Toolbar -->
+      <div class="control-toolbar">
+        <button id="pauseResumeBtn" class="btn btn-secondary btn-icon-label">
+          <svg class="svg-icon" viewBox="0 0 24 24" id="pauseIcon"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          <span id="pauseText">Pause</span>
+        </button>
+
+        <button id="muteMicBtn" class="btn btn-secondary btn-icon-label">
+          <svg class="svg-icon" viewBox="0 0 24 24" id="muteIcon"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+          <span id="muteText">Mute Mic</span>
+        </button>
+
+        <button id="stopBtn" class="btn btn-danger btn-icon-label">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="fill: currentColor;"><rect x="6" y="6" width="12" height="12", rx="1"></rect></svg>
+          <span>Stop & Save WAV</span>
+        </button>
+      </div>
+      <div class="hotkey-hint">Toggle Mute: <strong>Ctrl+Shift+M</strong></div>
+    </div>
+
+    <!-- Encoding Loader State -->
+    <div class="encoding-view hidden" id="encodingView">
+      <div class="spinner"></div>
+      <div class="encoding-title">Merging & Encoding WAV...</div>
+      <div class="encoding-subtitle">Please wait, your uncompressed 16-bit linear PCM WAV file is being correctly formatted.</div>
+    </div>
+
+    <!-- Recordings History Section -->
+    <div class="panel history-panel">
+      <div class="panel-header">
+        <div class="panel-title-with-icon">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Recent WAV Recordings</span>
+        </div>
+        <button class="btn-link" id="clearHistoryBtn" title="Clear History List">Clear</button>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty" id="historyEmpty">No recordings yet in this session.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

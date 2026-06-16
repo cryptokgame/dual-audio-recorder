@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Microphone Setup & Permissions - Dual Audio Recorder</title>
+  <style>
+    :root {
+      --bg-main: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .setup-container {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      max-width: 600px;
+      width: 100%;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .header-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .step-card {
+      background-color: #f1f5f9;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .step-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .svg-icon {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .btn {
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      color: white;
+      background-color: var(--primary);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+    }
+
+    .mic-select-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .select-dropdown {
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: white;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-dropdown:focus {
+      border-color: var(--primary);
+    }
+
+    .visualizer-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .canvas-meter {
+      width: 100%;
+      height: 60px;
+      background-color: #0f172a;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .status-alert {
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-alert.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <div class="header-area">
+      <img src="icon48.png" alt="Logo" class="logo-img">
+      <div>
+        <h1 class="title">Microphone Device Setup</h1>
+        <div class="subtitle">Authorizing and verifying your preferred audio hardware</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Unlock Permissions -->
+    <div class="step-card" id="permissionStep">
+      <div class="step-card-title">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+        <span>1. Authorize Microphone Access</span>
+      </div>
+      <div class="hint">To record your voice alongside browser tab audio, please grant permission when prompted by Chrome. This enables full discovery of your specific hardware devices.</div>
+      <div>
+        <button id="authorizeBtn" class="btn">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <span>Grant Microphone Permission</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Device Selection & Testing -->
+    <div class="step-card">
+      <div class="step-card-title">
+        <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <span>2. Select Specific Microphone</span>
+      </div>
+      <div class="mic-select-container">
+        <select id="deviceSelect" class="select-dropdown">
+          <option value="default">Default Device (Authorizing...)</option>
+        </select>
+        <div class="hint">Choose the exact microphone you wish to record with during your meetings.</div>
+      </div>
+
+      <div class="visualizer-area">
+        <div class="step-card-title" style="font-size: 13px; margin-top: 8px;">Live Microphone Level Test</div>
+        <canvas id="canvasMeter" class="canvas-meter" width="500" height="60"></canvas>
+        <div class="hint">Speak into your microphone to verify that audio is being successfully detected.</div>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="successAlert" class="status-alert hidden">
+      <svg class="svg-icon" viewBox="0 0 24 24" style="stroke: #065f46; flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+      <span>Hardware fully authorized and configured! You can now close this tab and record your meetings flawlessly.</span>
+    </div>
+  </div>
+
+  <script type="module" src="setup.js"></script>
+</body>
+</html>

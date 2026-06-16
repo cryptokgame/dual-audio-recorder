@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Dual Audio Recorder (Tab + Mic)",
+  "version": "1.0.0",
+  "description": "Minimalist, fully functional Chrome extension that simultaneously records any browser tab/meeting audio and microphone into a single mixed WAV file.",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_title": "Dual Audio Recorder (Tab + Mic)"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "tabCapture",
+    "activeTab",
+    "offscreen",
+    "downloads",
+    "storage",
+    "notifications"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "commands": {
+    "toggle-recording": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "Start or Stop Dual Audio Recording"
+    },
+    "toggle-mute": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Mute or Unmute Microphone"
+    }
+  }
+}
