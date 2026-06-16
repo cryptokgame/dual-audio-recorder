@@ -103,7 +103,7 @@ function executeRobustDownload(url, filename) {
   chrome.downloads.download({
     url: url,
     filename: filename,
-    saveAs: true
+    saveAs: false
   }, (downloadId) => {
     if (chrome.runtime.lastError) {
       const errMsg = chrome.runtime.lastError.message;

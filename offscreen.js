@@ -274,48 +274,62 @@ function stopRecording() {
 
         chrome.runtime.sendMessage({ type: 'ENCODING_WAV' }).catch(() => {});
 
-        // 1. Decode WebM/Opus into a pristine Web Audio AudioBuffer
-        const arrayBuffer = await webmBlob.arrayBuffer();
-        const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        console.log(`Decoded Web Audio Buffer: ${decodedBuffer.numberOfChannels} channels, ${decodedBuffer.sampleRate} Hz, ${decodedBuffer.duration.toFixed(2)} sec`);
+        let finalBlob = webmBlob;
+        let finalFilename = '';
+        let finalDuration = 0;
+        let finalSize = webmBlob.size;
 
-        // 2. Encode uncompressed AudioBuffer to Canonical 16-bit Linear PCM WAV Blob
-        const wavBlob = audioBufferToWav(decodedBuffer);
-        console.log(`Generated canonical 16-bit Linear PCM WAV Blob size: ${(wavBlob.size / 1024 / 1024).toFixed(2)} MB`);
+        try {
+          // 1. Decode WebM/Opus into a pristine Web Audio AudioBuffer
+          const arrayBuffer = await webmBlob.arrayBuffer();
+          const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          console.log(`Decoded Web Audio Buffer: ${decodedBuffer.numberOfChannels} channels, ${decodedBuffer.sampleRate} Hz, ${decodedBuffer.duration.toFixed(2)} sec`);
 
-        // 3. Construct descriptive professional filename
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-        const cleanTitle = (recordedMetadata.tabTitle || 'Recording').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
-        const filename = `DualAudioMix_${cleanTitle}_${timestamp}.wav`;
+          // 2. Encode uncompressed AudioBuffer to Canonical 16-bit Linear PCM WAV Blob
+          finalBlob = audioBufferToWav(decodedBuffer);
+          finalDuration = decodedBuffer.duration;
+          finalSize = finalBlob.size;
+          console.log(`Generated canonical 16-bit Linear PCM WAV Blob size: ${(finalSize / 1024 / 1024).toFixed(2)} MB`);
+          
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+          const cleanTitle = (recordedMetadata.tabTitle || 'Recording').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+          finalFilename = `DualAudioMix_${cleanTitle}_${timestamp}.wav`;
+        } catch (wavErr) {
+          console.warn('WAV encoding failed, falling back to WebM.', wavErr);
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+          const cleanTitle = (recordedMetadata.tabTitle || 'Recording').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+          finalFilename = `DualAudioMix_${cleanTitle}_${timestamp}.webm`;
+          // Estimate duration from elapsed time since it's a raw WebM
+          finalDuration = (Date.now() - recordingStartTime - totalPausedTime) / 1000;
+        }
 
         // Create Object URL
-        const wavUrl = URL.createObjectURL(wavBlob);
+        const finalUrl = URL.createObjectURL(finalBlob);
 
         // 4. Save recording metadata to local storage history
         await saveRecordingHistory({
-          id: timestamp,
-          filename: filename,
+          id: Date.now().toString(),
+          filename: finalFilename,
           title: recordedMetadata.tabTitle || 'Browser Call Mix',
           date: new Date().toISOString(),
-          duration: decodedBuffer.duration,
-          fileSize: wavBlob.size,
-          url: wavUrl
+          duration: finalDuration,
+          fileSize: finalSize,
+          url: finalUrl
         });
 
         // 5. Broadcast completion state
         chrome.runtime.sendMessage({
           type: 'RECORDING_COMPLETE',
-          filename: filename,
-          url: wavUrl
+          filename: finalFilename,
+          url: finalUrl
         }).catch(() => {});
 
-        // 6. Critical Bug Fix: Functionally execute download via Background Service Worker
-        // (Since chrome.downloads is completely undefined inside Manifest V3 offscreen documents)
+        // 6. Execute download via Background Service Worker
         console.log('Sending EXECUTE_WAV_DOWNLOAD to Background Service Worker...');
         chrome.runtime.sendMessage({
           action: 'EXECUTE_WAV_DOWNLOAD',
-          url: wavUrl,
-          filename: filename
+          url: finalUrl,
+          filename: finalFilename
         }).catch(() => {});
 
         cleanupAudio();
